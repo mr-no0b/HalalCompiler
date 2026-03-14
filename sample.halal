@@ -1,11 +1,11 @@
-def int main():
-    int b 7 =
-    int c 5 =
-    int a b c + =
+adad main():
+    adad b 7 =
+    adad c 5 =
+    adad a b c + =
 
-    if a 10 >:
-        print a
-    else:
-        print c
+    iza a 10 >:
+        qul a
+    wailla:
+        qul c
 
-    return 0
+    irji 0

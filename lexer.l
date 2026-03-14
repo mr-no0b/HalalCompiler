@@ -79,17 +79,22 @@ static int process_indent(int indent) {
 <INITIAL>"("            { return LPAREN; }
 <INITIAL>")"            { return RPAREN; }
 <INITIAL>","            { return COMMA; }
+<INITIAL>";"            { return SEMI; }
 
 <INITIAL>"=="           { return EQ; }
 <INITIAL>"!="           { return NE; }
+<INITIAL>"&&"           { return AND; }
+<INITIAL>"||"           { return OR; }
 <INITIAL>">="           { return GE; }
 <INITIAL>"<="           { return LE; }
 <INITIAL>"="            { return ASSIGN; }
+<INITIAL>"!"            { return NOT; }
 <INITIAL>">"            { return GT; }
 <INITIAL>"<"            { return LT; }
 <INITIAL>"+"            { return PLUS; }
 <INITIAL>"-"            { return MINUS; }
 <INITIAL>"*"            { return STAR; }
+<INITIAL>"%"            { return MOD; }
 <INITIAL>"/"            { return SLASH; }
 
 <INITIAL>"\""([^\\\n]|(\\.))*"\""  {
@@ -107,6 +112,9 @@ static int process_indent(int indent) {
                             if (strcmp(yytext, "elif") == 0 || strcmp(yytext, "iza_ila") == 0) return ELIF;
                             if (strcmp(yytext, "else") == 0 || strcmp(yytext, "wailla") == 0) return ELSE;
                             if (strcmp(yytext, "while") == 0 || strcmp(yytext, "ma_dama") == 0) return WHILE;
+                            if (strcmp(yytext, "for") == 0 || strcmp(yytext, "likulli") == 0) return FOR;
+                            if (strcmp(yytext, "break") == 0 || strcmp(yytext, "qif") == 0) return BREAK;
+                            if (strcmp(yytext, "continue") == 0 || strcmp(yytext, "wasil") == 0) return CONTINUE;
                             if (strcmp(yytext, "return") == 0 || strcmp(yytext, "irji") == 0) return RETURN;
                             if (strcmp(yytext, "print") == 0 || strcmp(yytext, "qul") == 0) return PRINT;
                             if (strcmp(yytext, "def") == 0) return DEF;

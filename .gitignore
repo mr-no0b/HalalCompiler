@@ -1,0 +1,12 @@
+# Build outputs
+halalc
+out
+out.c
+parser.tab.c
+parser.tab.h
+lex.yy.c
+
+# Test-generated artifacts
+tests/*.c
+tests/*.out
+tests/tmp.c

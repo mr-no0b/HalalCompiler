@@ -62,27 +62,35 @@ extern int yydebug;
     ELIF = 263,                    /* ELIF  */
     ELSE = 264,                    /* ELSE  */
     WHILE = 265,                   /* WHILE  */
-    RETURN = 266,                  /* RETURN  */
-    PRINT = 267,                   /* PRINT  */
-    DEF = 268,                     /* DEF  */
-    NEWLINE = 269,                 /* NEWLINE  */
-    INDENT = 270,                  /* INDENT  */
-    DEDENT = 271,                  /* DEDENT  */
-    COLON = 272,                   /* COLON  */
-    ASSIGN = 273,                  /* ASSIGN  */
-    PLUS = 274,                    /* PLUS  */
-    MINUS = 275,                   /* MINUS  */
-    STAR = 276,                    /* STAR  */
-    SLASH = 277,                   /* SLASH  */
-    GT = 278,                      /* GT  */
-    LT = 279,                      /* LT  */
-    GE = 280,                      /* GE  */
-    LE = 281,                      /* LE  */
-    EQ = 282,                      /* EQ  */
-    NE = 283,                      /* NE  */
-    LPAREN = 284,                  /* LPAREN  */
-    RPAREN = 285,                  /* RPAREN  */
-    COMMA = 286                    /* COMMA  */
+    FOR = 266,                     /* FOR  */
+    RETURN = 267,                  /* RETURN  */
+    PRINT = 268,                   /* PRINT  */
+    BREAK = 269,                   /* BREAK  */
+    CONTINUE = 270,                /* CONTINUE  */
+    DEF = 271,                     /* DEF  */
+    NEWLINE = 272,                 /* NEWLINE  */
+    INDENT = 273,                  /* INDENT  */
+    DEDENT = 274,                  /* DEDENT  */
+    COLON = 275,                   /* COLON  */
+    ASSIGN = 276,                  /* ASSIGN  */
+    SEMI = 277,                    /* SEMI  */
+    PLUS = 278,                    /* PLUS  */
+    MINUS = 279,                   /* MINUS  */
+    STAR = 280,                    /* STAR  */
+    SLASH = 281,                   /* SLASH  */
+    MOD = 282,                     /* MOD  */
+    GT = 283,                      /* GT  */
+    LT = 284,                      /* LT  */
+    GE = 285,                      /* GE  */
+    LE = 286,                      /* LE  */
+    EQ = 287,                      /* EQ  */
+    NE = 288,                      /* NE  */
+    AND = 289,                     /* AND  */
+    OR = 290,                      /* OR  */
+    NOT = 291,                     /* NOT  */
+    LPAREN = 292,                  /* LPAREN  */
+    RPAREN = 293,                  /* RPAREN  */
+    COMMA = 294                    /* COMMA  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -91,11 +99,11 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 139 "parser.y"
+#line 391 "parser.y"
 
     char* str;
 
-#line 99 "parser.tab.h"
+#line 107 "parser.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

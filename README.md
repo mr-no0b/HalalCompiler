@@ -5,7 +5,8 @@ This project is a Flex/Bison compiler front-end that transpiles a custom source 
 Key syntax choices:
 - Postfix (RPN) expressions for assignment and conditions.
 - Python-like indentation blocks instead of `{}`.
-- Supports both English and your Halal keyword style for major constructs.
+- Halal keyword style is the default (English aliases are still accepted).
+- Loop support includes `ma_dama` (while), `likulli` (for), `qif` (break), and `wasil` (continue).
 
 ## Simple project structure
 - `lexer.l` - Flex lexer with indentation (`INDENT`/`DEDENT`) handling.
@@ -30,17 +31,22 @@ gcc out.c -o out
 ./out
 ```
 
+## Run tests
+```bash
+make test
+```
+
 ## Syntax examples
 
 ### Function with indentation block
 ```txt
-def int main():
-    return 0
+adad main():
+    irji 0
 ```
 
 ### Postfix assignment
 ```txt
-int a b c + =
+adad a b c + =
 ```
 Equivalent C:
 ```c
@@ -49,13 +55,30 @@ int a = (b + c);
 
 ### If/else with postfix condition
 ```txt
-if a 10 >:
-    print a
-else:
-    print 0
+iza a 10 >:
+    qul a
+wailla:
+    qul 0
 ```
+
+### While loop
+```txt
+ma_dama i 10 <:
+    i i 1 + =
+```
+
+### For loop (postfix style)
+```txt
+likulli adad i 0 = ; i 10 < ; i i 1 + =:
+    qul i
+```
+
+### Supported postfix operators
+- Arithmetic: `+`, `-`, `*`, `/`, `%`
+- Relational: `>`, `<`, `>=`, `<=`, `==`, `!=`
+- Logical: `&&`, `||`, `!`
 
 ## Notes
 - Statements end by newline.
 - Expressions are postfix; assignment operator `=` is written at the end of assignment statements.
-- Current scaffold is intentionally compact and easy to extend for semantic analysis, symbol tables, and optimization.
+- Basic semantic checks are included: undeclared variable use, redeclaration, assignment type checks, return checks, and loop-control misuse.

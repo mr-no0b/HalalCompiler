@@ -4,6 +4,7 @@
 extern int yyparse(void);
 extern FILE* yyin;
 extern const char* get_generated_program(void);
+extern int has_semantic_errors(void);
 
 int main(int argc, char** argv) {
     if (argc < 2 || argc > 3) {
@@ -23,8 +24,8 @@ int main(int argc, char** argv) {
     int parse_status = yyparse();
     fclose(yyin);
 
-    if (parse_status != 0) {
-        fprintf(stderr, "Compilation failed: parse errors found.\n");
+    if (parse_status != 0 || has_semantic_errors()) {
+        fprintf(stderr, "Compilation failed: parse/semantic errors found.\n");
         return 1;
     }
 
