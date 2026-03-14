@@ -1,0 +1,22 @@
+haqiqi multiply(adad x, adad y):
+    irji x y 1.589 * *
+
+adad main():
+    adad a 6 =
+    adad b 7 =
+    adad result a b * =
+
+    iza result 40 >:
+        qul "Result is greater than 40"
+        satr
+    wailla:
+        qul "Result is not greater than 40"
+        satr
+
+    haqiqi ans multiply(a, b) 7.0 + =
+    qul ans
+    satr
+    likulli adad i 1 = ; i 5 <= ; i i 1 + =:
+        qul i
+        satr
+    irji 0
