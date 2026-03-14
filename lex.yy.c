@@ -1047,6 +1047,7 @@ YY_RULE_SETUP
                             if (strcmp(yytext, "continue") == 0 || strcmp(yytext, "wasil") == 0) return CONTINUE;
                             if (strcmp(yytext, "return") == 0 || strcmp(yytext, "irji") == 0) return RETURN;
                             if (strcmp(yytext, "print") == 0 || strcmp(yytext, "qul") == 0) return PRINT;
+                            if (strcmp(yytext, "satr") == 0) return SATR;
                             if (strcmp(yytext, "def") == 0) return DEF;
 
                             if (strcmp(yytext, "int") == 0 || strcmp(yytext, "adad") == 0) {
@@ -1072,7 +1073,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 143 "lexer.l"
+#line 144 "lexer.l"
 {
                             fprintf(stderr, "Invalid token '%s' at line %d\n", yytext, yylineno);
                             exit(1);
@@ -1080,10 +1081,10 @@ YY_RULE_SETUP
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 148 "lexer.l"
+#line 149 "lexer.l"
 YY_FATAL_ERROR( "flex scanner jammed" );
 	YY_BREAK
-#line 1086 "lex.yy.c"
+#line 1087 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(BOL):
 	yyterminate();
@@ -2101,7 +2102,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 148 "lexer.l"
+#line 149 "lexer.l"
 
 
 int yylex(void) {
