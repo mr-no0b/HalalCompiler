@@ -1,0 +1,10 @@
+haqiqi multiply(adad x, adad y):
+    irji x y 1.0 * *
+
+adad main():
+    adad a 6 =
+    adad b 7 =
+    haqiqi ans multiply(a, b) 7.0 + =
+    qul ans
+    satr
+    irji 0

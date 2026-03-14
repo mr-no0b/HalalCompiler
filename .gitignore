@@ -10,3 +10,7 @@ lex.yy.c
 tests/*.c
 tests/*.out
 tests/tmp.c
+
+# Selftest-generated artifacts
+selftest/*.c
+selftest/*.out

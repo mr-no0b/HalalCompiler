@@ -7,6 +7,7 @@
 
 static char* generated_program = NULL;
 static int semantic_errors = 0;
+extern int yylineno;
 
 typedef enum {
   TY_INT,
@@ -24,6 +25,8 @@ typedef struct {
 typedef struct {
   char name[64];
   ValueType ret_type;
+  int arg_count;
+  ValueType arg_types[64];
 } FunctionInfo;
 
 static Symbol symbols[1024];
@@ -34,6 +37,15 @@ static int function_count = 0;
 
 static ValueType current_function_type = TY_UNKNOWN;
 static int loop_depth = 0;
+extern int yylineno;
+
+static int pending_param_count = 0;
+static ValueType pending_param_types[64];
+static char pending_param_names[64][64];
+
+static int pending_call_arg_count = 0;
+static ValueType pending_call_arg_types[64];
+static ValueType last_call_expr_type = TY_UNKNOWN;
 
 static char* xstrdup(const char* s) {
     size_t n = strlen(s) + 1;
@@ -87,7 +99,7 @@ static char* concat_space(const char* a, const char* b) {
     if (a[0] == '\0') {
         return xstrdup(b);
     }
-    return str_printf("%s %s", a, b);
+  return str_printf("%s\t%s", a, b);
 }
 
 static char* indent_code(const char* code) {
@@ -119,7 +131,7 @@ static char* indent_code(const char* code) {
 
 static void semantic_error(const char* fmt, ...) {
   semantic_errors++;
-  fprintf(stderr, "Semantic error: ");
+  fprintf(stderr, "Semantic error (line %d): ", yylineno);
   va_list ap;
   va_start(ap, fmt);
   vfprintf(stderr, fmt, ap);
@@ -170,11 +182,42 @@ static int declare_symbol(const char* name, ValueType type) {
   return 1;
 }
 
-static int function_exists(const char* name) {
+static int function_index(const char* name) {
   for (int i = 0; i < function_count; i++) {
-    if (strcmp(functions[i].name, name) == 0) return 1;
+    if (strcmp(functions[i].name, name) == 0) return i;
   }
-  return 0;
+  return -1;
+}
+
+static int function_exists(const char* name) {
+  return function_index(name) >= 0;
+}
+
+static void reset_pending_params(void) {
+  pending_param_count = 0;
+}
+
+static void push_pending_param(const char* type_name, const char* param_name) {
+  if (pending_param_count >= 64) {
+    semantic_error("too many function parameters");
+    return;
+  }
+  pending_param_types[pending_param_count] = parse_type_name(type_name);
+  strncpy(pending_param_names[pending_param_count], param_name, sizeof(pending_param_names[pending_param_count]) - 1);
+  pending_param_names[pending_param_count][sizeof(pending_param_names[pending_param_count]) - 1] = '\0';
+  pending_param_count++;
+}
+
+static void reset_pending_call_args(void) {
+  pending_call_arg_count = 0;
+}
+
+static void push_pending_call_arg(ValueType t) {
+  if (pending_call_arg_count >= 64) {
+    semantic_error("too many function call arguments");
+    return;
+  }
+  pending_call_arg_types[pending_call_arg_count++] = t;
 }
 
 static void register_function(const char* name, ValueType ret_type) {
@@ -189,6 +232,10 @@ static void register_function(const char* name, ValueType ret_type) {
   strncpy(functions[function_count].name, name, sizeof(functions[function_count].name) - 1);
   functions[function_count].name[sizeof(functions[function_count].name) - 1] = '\0';
   functions[function_count].ret_type = ret_type;
+  functions[function_count].arg_count = pending_param_count;
+  for (int i = 0; i < pending_param_count; i++) {
+    functions[function_count].arg_types[i] = pending_param_types[i];
+  }
   function_count++;
 }
 
@@ -196,6 +243,9 @@ static void begin_function(const char* type_name, const char* name) {
   current_function_type = parse_type_name(type_name);
   clear_symbols();
   register_function(name, current_function_type);
+  for (int i = 0; i < pending_param_count; i++) {
+    declare_symbol(pending_param_names[i], pending_param_types[i]);
+  }
 }
 
 static int is_number_token(const char* tok) {
@@ -231,6 +281,28 @@ static int is_operator(const char* tok) {
        strcmp(tok, "!") == 0;
 }
 
+static int is_call_token(const char* tok) {
+  const char* lp = strchr(tok, '(');
+  size_t n = strlen(tok);
+  return lp != NULL && n > 2 && tok[n - 1] == ')';
+}
+
+static ValueType call_return_type_from_token(const char* tok) {
+  const char* lp = strchr(tok, '(');
+  if (!lp) return TY_UNKNOWN;
+  size_t len = (size_t)(lp - tok);
+  if (len == 0 || len >= 64) return TY_UNKNOWN;
+  char name[64];
+  memcpy(name, tok, len);
+  name[len] = '\0';
+  int fi = function_index(name);
+  if (fi < 0) {
+    semantic_error("call to undefined function '%s'", name);
+    return TY_UNKNOWN;
+  }
+  return functions[fi].ret_type;
+}
+
 static int op_arity(const char* tok) {
   if (strcmp(tok, "!") == 0) return 1;
   return 2;
@@ -256,13 +328,20 @@ static ValueType infer_postfix_type(const char* expr) {
   ValueType stack[512];
   int top = 0;
 
-  char* tok = strtok(copy, " ");
+  char* tok = strtok(copy, "\t");
   while (tok) {
     if (!is_operator(tok)) {
       if (is_number_token(tok)) {
         stack[top++] = number_type(tok);
       } else if (tok[0] == '"') {
         stack[top++] = TY_CHAR;
+      } else if (is_call_token(tok)) {
+        ValueType rt = call_return_type_from_token(tok);
+        if (rt == TY_UNKNOWN) {
+          free(copy);
+          return TY_UNKNOWN;
+        }
+        stack[top++] = rt;
       } else if (is_identifier_token(tok)) {
         ValueType t = symbol_type(tok);
         if (t == TY_UNKNOWN) {
@@ -276,7 +355,7 @@ static ValueType infer_postfix_type(const char* expr) {
         free(copy);
         return TY_UNKNOWN;
       }
-      tok = strtok(NULL, " ");
+      tok = strtok(NULL, "\t");
       continue;
     }
 
@@ -295,7 +374,7 @@ static ValueType infer_postfix_type(const char* expr) {
         return TY_UNKNOWN;
       }
       stack[top++] = TY_INT;
-      tok = strtok(NULL, " ");
+      tok = strtok(NULL, "\t");
       continue;
     }
 
@@ -322,7 +401,7 @@ static ValueType infer_postfix_type(const char* expr) {
       stack[top++] = (lhs == TY_DOUBLE || rhs == TY_DOUBLE) ? TY_DOUBLE : TY_INT;
     }
 
-    tok = strtok(NULL, " ");
+    tok = strtok(NULL, "\t");
   }
 
   if (top != 1) {
@@ -341,11 +420,11 @@ static char* postfix_to_c(const char* expr) {
     char* stack[512];
     int top = 0;
 
-  char* tok = strtok(copy, " ");
+  char* tok = strtok(copy, "\t");
   while (tok) {
         if (!is_operator(tok)) {
             stack[top++] = xstrdup(tok);
-      tok = strtok(NULL, " ");
+      tok = strtok(NULL, "\t");
       continue;
         }
 
@@ -361,7 +440,7 @@ static char* postfix_to_c(const char* expr) {
           char* merged = str_printf("(%s%s)", tok, a);
           stack[top++] = merged;
           free(a);
-          tok = strtok(NULL, " ");
+          tok = strtok(NULL, "\t");
           continue;
         }
 
@@ -371,7 +450,7 @@ static char* postfix_to_c(const char* expr) {
         stack[top++] = merged;
         free(lhs);
         free(rhs);
-        tok = strtok(NULL, " ");
+        tok = strtok(NULL, "\t");
     }
 
     char* out = (top == 1) ? xstrdup(stack[0]) : xstrdup("0");
@@ -393,7 +472,7 @@ int has_semantic_errors(void);
 }
 
 %token <str> IDENT NUMBER STRING TYPE
-%token IF ELIF ELSE WHILE FOR RETURN PRINT BREAK CONTINUE DEF
+%token IF ELIF ELSE WHILE FOR RETURN PRINT SATR BREAK CONTINUE DEF
 %token NEWLINE INDENT DEDENT COLON ASSIGN SEMI
 %token PLUS MINUS STAR SLASH MOD GT LT GE LE EQ NE AND OR NOT
 %token LPAREN RPAREN COMMA
@@ -401,6 +480,8 @@ int has_semantic_errors(void);
 %type <str> program top_list top_item func_def func_open
 %type <str> stmt_list stmt simple_stmt opt_expr postfix_expr postfix_item for_init for_cond for_update
 %type <str> opt_elif opt_else nl
+%type <str> param_list_opt param_list param_decl arg_list_opt arg_list arg_item
+%type <str> call_expr
 
 %start program
 
@@ -439,13 +520,51 @@ func_def
     ;
 
 func_open
-    : DEF TYPE IDENT LPAREN RPAREN COLON nl {
+    : DEF TYPE IDENT LPAREN param_list_opt RPAREN COLON nl {
         begin_function($2, $3);
-        $$ = str_printf("%s %s()", $2, $3);
+        $$ = str_printf("%s %s(%s)", $2, $3, $5);
       }
-    | TYPE IDENT LPAREN RPAREN COLON nl {
+    | TYPE IDENT LPAREN param_list_opt RPAREN COLON nl {
         begin_function($1, $2);
-        $$ = str_printf("%s %s()", $1, $2);
+        $$ = str_printf("%s %s(%s)", $1, $2, $4);
+      }
+    ;
+
+param_list_opt
+    : /* empty */ {
+        reset_pending_params();
+        $$ = xstrdup("");
+      }
+    | param_reset param_list {
+        $$ = $2;
+      }
+    ;
+
+param_reset
+    : /* empty */ {
+        reset_pending_params();
+      }
+    ;
+
+param_list
+    : param_decl {
+        $$ = $1;
+      }
+    | param_list COMMA param_decl {
+        char* merged = str_printf("%s, %s", $1, $3);
+        free($1);
+        free($3);
+        $$ = merged;
+      }
+    ;
+
+param_decl
+    : TYPE IDENT {
+        if (parse_type_name($1) == TY_VOID) {
+            semantic_error("parameter '%s' cannot be of type void", $2);
+        }
+        push_pending_param($1, $2);
+        $$ = str_printf("%s %s", $1, $2);
       }
     ;
 
@@ -660,19 +779,84 @@ simple_stmt
         $$ = xstrdup("continue;\n");
       }
     | PRINT postfix_expr nl {
-        infer_postfix_type($2);
+      ValueType t = infer_postfix_type($2);
         char* expr = postfix_to_c($2);
-        $$ = str_printf("printf(\"%%g\\n\", (double)(%s));\n", expr);
+      if (t == TY_DOUBLE) {
+            $$ = str_printf("printf(\"%%g\", (double)(%s));\n", expr);
+      } else if (t == TY_INT || t == TY_CHAR) {
+            $$ = str_printf("printf(\"%%d\", (int)(%s));\n", expr);
+      } else {
+            $$ = str_printf("printf(\"%%g\", (double)(%s));\n", expr);
+      }
         free(expr);
       }
     | PRINT STRING nl {
-        $$ = str_printf("printf(\"%%s\\n\", %s);\n", $2);
+        $$ = str_printf("printf(\"%%s\", %s);\n", $2);
       }
-    | IDENT LPAREN RPAREN nl {
-        if (!function_exists($1)) {
-            semantic_error("call to undefined function '%s'", $1);
+    | SATR nl {
+        $$ = xstrdup("printf(\"\\n\");\n");
+      }
+    | call_expr nl {
+      $$ = str_printf("%s;\n", $1);
+      }
+    ;
+
+    call_expr
+      : IDENT LPAREN arg_list_opt RPAREN {
+        int fi = function_index($1);
+        last_call_expr_type = TY_UNKNOWN;
+        if (fi < 0) {
+          semantic_error("call to undefined function '%s'", $1);
+        } else {
+          if (functions[fi].arg_count != pending_call_arg_count) {
+            semantic_error("function '%s' expects %d args but got %d", $1, functions[fi].arg_count, pending_call_arg_count);
+          } else {
+            for (int i = 0; i < pending_call_arg_count; i++) {
+              if (!can_assign(functions[fi].arg_types[i], pending_call_arg_types[i])) {
+                semantic_error("type mismatch for arg %d in call to '%s'", i + 1, $1);
+                break;
+              }
+            }
+            last_call_expr_type = functions[fi].ret_type;
+          }
         }
-        $$ = str_printf("%s();\n", $1);
+        $$ = str_printf("%s(%s)", $1, $3);
+        }
+      ;
+
+  arg_list_opt
+    : /* empty */ {
+      reset_pending_call_args();
+      $$ = xstrdup("");
+      }
+      | arg_reset arg_list {
+          $$ = $2;
+      }
+    ;
+
+  arg_reset
+      : /* empty */ {
+          reset_pending_call_args();
+        }
+      ;
+
+  arg_list
+    : arg_item {
+      $$ = $1;
+      }
+    | arg_list COMMA arg_item {
+      char* merged = str_printf("%s,%s", $1, $3);
+      free($1);
+      free($3);
+      $$ = merged;
+      }
+    ;
+
+  arg_item
+    : postfix_expr {
+      ValueType t = infer_postfix_type($1);
+      push_pending_call_arg(t);
+      $$ = postfix_to_c($1);
       }
     ;
 
@@ -704,8 +888,8 @@ postfix_item
     | NUMBER {
         $$ = xstrdup($1);
       }
-    | STRING {
-        $$ = xstrdup($1);
+    | call_expr {
+        $$ = $1;
       }
     | PLUS {
         $$ = xstrdup("+");
@@ -763,7 +947,7 @@ nl
 %%
 
 void yyerror(const char* s) {
-    fprintf(stderr, "Parse error: %s\n", s);
+  fprintf(stderr, "Parse error (line %d): %s\n", yylineno, s);
 }
 
 const char* get_generated_program(void) {

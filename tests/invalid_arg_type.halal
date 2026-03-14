@@ -1,0 +1,6 @@
+adad show(adad x):
+    irji x
+
+adad main():
+    show("abc")
+    irji 0

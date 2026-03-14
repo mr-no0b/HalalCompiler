@@ -44,8 +44,14 @@ run_invalid() {
 
 run_valid "tests/valid_loops.halal" "18"
 run_valid "tests/valid_complex_expr.halal" "999"
+run_valid "tests/valid_function_args.halal" ""
+run_valid "tests/valid_call_expr_assign.halal" "49"
 run_invalid "tests/invalid_undeclared.halal"
 run_invalid "tests/invalid_break_outside.halal"
+run_invalid "tests/invalid_lexical.halal"
+run_invalid "tests/invalid_syntax.halal"
+run_invalid "tests/invalid_arg_count.halal"
+run_invalid "tests/invalid_arg_type.halal"
 
 echo "---"
 echo "Passed: $pass_count"

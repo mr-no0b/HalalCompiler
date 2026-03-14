@@ -40,8 +40,8 @@ make test
 
 ### Function with indentation block
 ```txt
-adad main():
-    irji 0
+adad add(adad x, adad y):
+    irji x y +
 ```
 
 ### Postfix assignment
@@ -73,6 +73,18 @@ likulli adad i 0 = ; i 10 < ; i i 1 + =:
     qul i
 ```
 
+### Function call with arguments
+```txt
+add(3, 4)
+```
+
+### Newline control with satr
+```txt
+qul "My roll is"
+satr
+qul 41
+```
+
 ### Supported postfix operators
 - Arithmetic: `+`, `-`, `*`, `/`, `%`
 - Relational: `>`, `<`, `>=`, `<=`, `==`, `!=`
@@ -81,4 +93,10 @@ likulli adad i 0 = ; i 10 < ; i i 1 + =:
 ## Notes
 - Statements end by newline.
 - Expressions are postfix; assignment operator `=` is written at the end of assignment statements.
+- `qul` does not append newline automatically.
+- `satr` emits a newline (`printf("\\n")`).
 - Basic semantic checks are included: undeclared variable use, redeclaration, assignment type checks, return checks, and loop-control misuse.
+
+## Known limitations (current scope)
+- Symbol checking is function-level (no full nested block scope yet).
+- Type conversion and type system are basic and numeric-focused.
