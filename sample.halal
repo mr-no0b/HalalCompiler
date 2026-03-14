@@ -1,0 +1,11 @@
+def int main():
+    int b 7 =
+    int c 5 =
+    int a b c + =
+
+    if a 10 >:
+        print a
+    else:
+        print c
+
+    return 0
