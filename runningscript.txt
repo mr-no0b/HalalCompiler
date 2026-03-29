@@ -1,0 +1,10 @@
+cd "/home/lionking/Desktop/Compiler Final"
+make
+
+
+
+./halalc sample.halal out.c
+gcc out.c -o out
+./out
+
+
