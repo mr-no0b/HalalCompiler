@@ -123,49 +123,50 @@ Source file explained: lexer.l
 | 117 |                             if (strcmp(yytext, "continue") == 0 \|\| strcmp(yytext, "wasil") == 0) return CONTINUE; | Conditional logic controlling lexer state/actions. |
 | 118 |                             if (strcmp(yytext, "return") == 0 \|\| strcmp(yytext, "irji") == 0) return RETURN; | Conditional logic controlling lexer state/actions. |
 | 119 |                             if (strcmp(yytext, "print") == 0 \|\| strcmp(yytext, "qul") == 0) return PRINT; | Conditional logic controlling lexer state/actions. |
-| 120 |                             if (strcmp(yytext, "satr") == 0) return SATR; | Conditional logic controlling lexer state/actions. |
-| 121 |                             if (strcmp(yytext, "def") == 0) return DEF; | Conditional logic controlling lexer state/actions. |
-| 122 |  | Blank line for readability and section separation. |
-| 123 |                             if (strcmp(yytext, "int") == 0 \|\| strcmp(yytext, "adad") == 0) { | Conditional logic controlling lexer state/actions. |
-| 124 |                                 yylval.str = dup_text("int"); | Implementation line participating in lexer state handling, token emission, or helper logic. |
-| 125 |                                 return TYPE; | Returns token/value to parser. |
-| 126 |                             } | Implementation line participating in lexer state handling, token emission, or helper logic. |
-| 127 |                             if (strcmp(yytext, "double") == 0 \|\| strcmp(yytext, "haqiqi") == 0) { | Conditional logic controlling lexer state/actions. |
-| 128 |                                 yylval.str = dup_text("double"); | Implementation line participating in lexer state handling, token emission, or helper logic. |
-| 129 |                                 return TYPE; | Returns token/value to parser. |
-| 130 |                             } | Implementation line participating in lexer state handling, token emission, or helper logic. |
-| 131 |                             if (strcmp(yytext, "char") == 0 \|\| strcmp(yytext, "harf") == 0) { | Conditional logic controlling lexer state/actions. |
-| 132 |                                 yylval.str = dup_text("char"); | Implementation line participating in lexer state handling, token emission, or helper logic. |
-| 133 |                                 return TYPE; | Returns token/value to parser. |
-| 134 |                             } | Implementation line participating in lexer state handling, token emission, or helper logic. |
-| 135 |                             if (strcmp(yytext, "void") == 0 \|\| strcmp(yytext, "fadi") == 0) { | Conditional logic controlling lexer state/actions. |
-| 136 |                                 yylval.str = dup_text("void"); | Implementation line participating in lexer state handling, token emission, or helper logic. |
-| 137 |                                 return TYPE; | Returns token/value to parser. |
-| 138 |                             } | Implementation line participating in lexer state handling, token emission, or helper logic. |
-| 139 |  | Blank line for readability and section separation. |
-| 140 |                             yylval.str = dup_text(yytext); | Implementation line participating in lexer state handling, token emission, or helper logic. |
-| 141 |                             return IDENT; | Returns token/value to parser. |
-| 142 |                          } | Implementation line participating in lexer state handling, token emission, or helper logic. |
-| 143 |  | Blank line for readability and section separation. |
-| 144 | <INITIAL>.                { | Regex catch-all <INITIAL>. : matches any remaining single char and reports invalid token. |
-| 145 |                             fprintf(stderr, "Invalid token '%s' at line %d\n", yytext, yylineno); | Implementation line participating in lexer state handling, token emission, or helper logic. |
-| 146 |                             exit(1); | Terminates on unrecoverable lexer error. |
-| 147 |                          } | Implementation line participating in lexer state handling, token emission, or helper logic. |
-| 148 |  | Blank line for readability and section separation. |
-| 149 | %% | Section delimiter in Flex file (definitions/rules/user code boundary). |
-| 150 |  | Blank line for readability and section separation. |
-| 151 | int yylex(void) { | Custom yylex wrapper: emits pending DEDENT tokens and final dedents at EOF. |
-| 152 |     if (pending_dedents > 0) { | Conditional logic controlling lexer state/actions. |
-| 153 |         pending_dedents--; | Implementation line participating in lexer state handling, token emission, or helper logic. |
-| 154 |         return DEDENT; | Returns token/value to parser. |
-| 155 |     } | Implementation line participating in lexer state handling, token emission, or helper logic. |
-| 156 |  | Blank line for readability and section separation. |
-| 157 |     int tok = next_token(); | Implementation line participating in lexer state handling, token emission, or helper logic. |
-| 158 |  | Blank line for readability and section separation. |
-| 159 |     if (tok == 0 && indent_top > 0) { | Conditional logic controlling lexer state/actions. |
-| 160 |         indent_top--; | Implementation line participating in lexer state handling, token emission, or helper logic. |
-| 161 |         return DEDENT; | Returns token/value to parser. |
-| 162 |     } | Implementation line participating in lexer state handling, token emission, or helper logic. |
-| 163 |  | Blank line for readability and section separation. |
-| 164 |     return tok; | Returns token/value to parser. |
-| 165 | } | Implementation line participating in lexer state handling, token emission, or helper logic. |
+| 120 |                             if (strcmp(yytext, "scanf") == 0 \|\| strcmp(yytext, "iqra") == 0) return READ; | Conditional logic controlling lexer state/actions. |
+| 121 |                             if (strcmp(yytext, "satr") == 0) return SATR; | Conditional logic controlling lexer state/actions. |
+| 122 |                             if (strcmp(yytext, "def") == 0) return DEF; | Conditional logic controlling lexer state/actions. |
+| 123 |  | Blank line for readability and section separation. |
+| 124 |                             if (strcmp(yytext, "int") == 0 \|\| strcmp(yytext, "adad") == 0) { | Conditional logic controlling lexer state/actions. |
+| 125 |                                 yylval.str = dup_text("int"); | Implementation line participating in lexer state handling, token emission, or helper logic. |
+| 126 |                                 return TYPE; | Returns token/value to parser. |
+| 127 |                             } | Implementation line participating in lexer state handling, token emission, or helper logic. |
+| 128 |                             if (strcmp(yytext, "double") == 0 \|\| strcmp(yytext, "haqiqi") == 0) { | Conditional logic controlling lexer state/actions. |
+| 129 |                                 yylval.str = dup_text("double"); | Implementation line participating in lexer state handling, token emission, or helper logic. |
+| 130 |                                 return TYPE; | Returns token/value to parser. |
+| 131 |                             } | Implementation line participating in lexer state handling, token emission, or helper logic. |
+| 132 |                             if (strcmp(yytext, "char") == 0 \|\| strcmp(yytext, "harf") == 0) { | Conditional logic controlling lexer state/actions. |
+| 133 |                                 yylval.str = dup_text("char"); | Implementation line participating in lexer state handling, token emission, or helper logic. |
+| 134 |                                 return TYPE; | Returns token/value to parser. |
+| 135 |                             } | Implementation line participating in lexer state handling, token emission, or helper logic. |
+| 136 |                             if (strcmp(yytext, "void") == 0 \|\| strcmp(yytext, "fadi") == 0) { | Conditional logic controlling lexer state/actions. |
+| 137 |                                 yylval.str = dup_text("void"); | Implementation line participating in lexer state handling, token emission, or helper logic. |
+| 138 |                                 return TYPE; | Returns token/value to parser. |
+| 139 |                             } | Implementation line participating in lexer state handling, token emission, or helper logic. |
+| 140 |  | Blank line for readability and section separation. |
+| 141 |                             yylval.str = dup_text(yytext); | Implementation line participating in lexer state handling, token emission, or helper logic. |
+| 142 |                             return IDENT; | Returns token/value to parser. |
+| 143 |                          } | Implementation line participating in lexer state handling, token emission, or helper logic. |
+| 144 |  | Blank line for readability and section separation. |
+| 145 | <INITIAL>.                { | Regex catch-all <INITIAL>. : matches any remaining single char and reports invalid token. |
+| 146 |                             fprintf(stderr, "Invalid token '%s' at line %d\n", yytext, yylineno); | Implementation line participating in lexer state handling, token emission, or helper logic. |
+| 147 |                             exit(1); | Terminates on unrecoverable lexer error. |
+| 148 |                          } | Implementation line participating in lexer state handling, token emission, or helper logic. |
+| 149 |  | Blank line for readability and section separation. |
+| 150 | %% | Section delimiter in Flex file (definitions/rules/user code boundary). |
+| 151 |  | Blank line for readability and section separation. |
+| 152 | int yylex(void) { | Custom yylex wrapper: emits pending DEDENT tokens and final dedents at EOF. |
+| 153 |     if (pending_dedents > 0) { | Conditional logic controlling lexer state/actions. |
+| 154 |         pending_dedents--; | Implementation line participating in lexer state handling, token emission, or helper logic. |
+| 155 |         return DEDENT; | Returns token/value to parser. |
+| 156 |     } | Implementation line participating in lexer state handling, token emission, or helper logic. |
+| 157 |  | Blank line for readability and section separation. |
+| 158 |     int tok = next_token(); | Implementation line participating in lexer state handling, token emission, or helper logic. |
+| 159 |  | Blank line for readability and section separation. |
+| 160 |     if (tok == 0 && indent_top > 0) { | Conditional logic controlling lexer state/actions. |
+| 161 |         indent_top--; | Implementation line participating in lexer state handling, token emission, or helper logic. |
+| 162 |         return DEDENT; | Returns token/value to parser. |
+| 163 |     } | Implementation line participating in lexer state handling, token emission, or helper logic. |
+| 164 |  | Blank line for readability and section separation. |
+| 165 |     return tok; | Returns token/value to parser. |
+| 166 | } | Implementation line participating in lexer state handling, token emission, or helper logic. |
