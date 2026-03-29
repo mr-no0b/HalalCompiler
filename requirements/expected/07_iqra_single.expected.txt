@@ -1,0 +1,2 @@
+stdin: 41
+stdout: 41

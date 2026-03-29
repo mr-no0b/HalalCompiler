@@ -1,5 +1,5 @@
 haqiqi multiply(adad x, adad y):
-    irji x y 1.0 * *
+    irji x y 1.5 * *
 
 adad main():
     adad a 6 =

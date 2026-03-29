@@ -1,0 +1,5 @@
+cd "/home/lionking/Desktop/Compiler Final"
+rm -f requirements/output/*.c requirements/output/*.out
+
+cd "/home/lionking/Desktop/Compiler Final"
+./halalc requirements/input/01_lexical_valid.input.halal requirements/output/01_lexical_valid.c

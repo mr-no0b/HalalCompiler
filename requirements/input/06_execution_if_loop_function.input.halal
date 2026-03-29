@@ -1,0 +1,15 @@
+adad add(adad x, adad y):
+    irji x y +
+
+adad main():
+    adad sum 0 =
+    likulli adad i 1 = ; i 5 <= ; i i 1 + =:
+        sum sum i + =
+    adad out add(sum, 5) =
+    iza out 20 ==:
+        qul out
+        satr
+    wailla:
+        qul 0
+        satr
+    irji 0
