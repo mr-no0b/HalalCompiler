@@ -85,6 +85,12 @@ satr
 qul 41
 ```
 
+### Input using iqra (scanf style)
+```txt
+adad roll
+iqra("%d", roll)
+```
+
 ### Supported postfix operators
 - Arithmetic: `+`, `-`, `*`, `/`, `%`
 - Relational: `>`, `<`, `>=`, `<=`, `==`, `!=`
@@ -95,6 +101,7 @@ qul 41
 - Expressions are postfix; assignment operator `=` is written at the end of assignment statements.
 - `qul` does not append newline automatically.
 - `satr` emits a newline (`printf("\\n")`).
+- `iqra` maps to `scanf` style input (`iqra("%d", var)` -> `scanf("%d", &var)`).
 - Basic semantic checks are included: undeclared variable use, redeclaration, assignment type checks, return checks, and loop-control misuse.
 
 ## Known limitations (current scope)

@@ -46,6 +46,8 @@ static char pending_param_names[64][64];
 static int pending_call_arg_count = 0;
 static ValueType pending_call_arg_types[64];
 static ValueType last_call_expr_type = TY_UNKNOWN;
+static int pending_read_count = 0;
+static ValueType pending_read_types[64];
 
 static char* xstrdup(const char* s) {
     size_t n = strlen(s) + 1;
@@ -218,6 +220,63 @@ static void push_pending_call_arg(ValueType t) {
     return;
   }
   pending_call_arg_types[pending_call_arg_count++] = t;
+}
+
+static void reset_pending_read_targets(void) {
+  pending_read_count = 0;
+}
+
+static void push_pending_read_target(ValueType t, const char* name) {
+  if (pending_read_count >= 64) {
+    semantic_error("too many input targets in iqra/scanf");
+    return;
+  }
+  pending_read_types[pending_read_count++] = t;
+  (void)name;
+}
+
+static int parse_scanf_specs(const char* fmt, ValueType out_specs[], int max_specs) {
+  if (!fmt) return -1;
+  size_t n = strlen(fmt);
+  if (n < 2 || fmt[0] != '"' || fmt[n - 1] != '"') return -1;
+
+  int count = 0;
+  for (size_t i = 1; i + 1 < n; i++) {
+    if (fmt[i] != '%') continue;
+
+    if (i + 1 < n && fmt[i + 1] == '%') {
+      i++;
+      continue;
+    }
+
+    size_t j = i + 1;
+    while (j + 1 < n && strchr(" +-#0", fmt[j])) j++;
+    while (j + 1 < n && isdigit((unsigned char)fmt[j])) j++;
+
+    if (j + 1 < n && fmt[j] == 'l' && (fmt[j + 1] == 'f' || fmt[j + 1] == 'g' || fmt[j + 1] == 'e')) {
+      if (count < max_specs) out_specs[count] = TY_DOUBLE;
+      count++;
+      i = j + 1;
+      continue;
+    }
+
+    if (j + 1 < n && (fmt[j] == 'd' || fmt[j] == 'i')) {
+      if (count < max_specs) out_specs[count] = TY_INT;
+      count++;
+      i = j;
+      continue;
+    }
+
+    if (j + 1 < n && fmt[j] == 'c') {
+      if (count < max_specs) out_specs[count] = TY_CHAR;
+      count++;
+      i = j;
+      continue;
+    }
+
+    return -1;
+  }
+  return count;
 }
 
 static void register_function(const char* name, ValueType ret_type) {
@@ -472,7 +531,7 @@ int has_semantic_errors(void);
 }
 
 %token <str> IDENT NUMBER STRING TYPE
-%token IF ELIF ELSE WHILE FOR RETURN PRINT SATR BREAK CONTINUE DEF
+%token IF ELIF ELSE WHILE FOR RETURN PRINT READ SATR BREAK CONTINUE DEF
 %token NEWLINE INDENT DEDENT COLON ASSIGN SEMI
 %token PLUS MINUS STAR SLASH MOD GT LT GE LE EQ NE AND OR NOT
 %token LPAREN RPAREN COMMA
@@ -482,6 +541,7 @@ int has_semantic_errors(void);
 %type <str> opt_elif opt_else nl
 %type <str> param_list_opt param_list param_decl arg_list_opt arg_list arg_item
 %type <str> call_expr
+%type <str> read_targets read_target read_targets_reset
 
 %start program
 
@@ -793,11 +853,59 @@ simple_stmt
     | PRINT STRING nl {
         $$ = str_printf("printf(\"%%s\", %s);\n", $2);
       }
+    | READ LPAREN STRING COMMA read_targets_reset read_targets RPAREN nl {
+      ValueType specs[64];
+      int spec_count = parse_scanf_specs($3, specs, 64);
+      if (spec_count < 0) {
+        semantic_error("invalid or unsupported scanf format %s", $3);
+      } else if (spec_count != pending_read_count) {
+        semantic_error("scanf format expects %d inputs but got %d", spec_count, pending_read_count);
+      } else {
+        for (int i = 0; i < spec_count; i++) {
+          if (specs[i] != pending_read_types[i]) {
+            semantic_error("scanf type mismatch at input #%d", i + 1);
+            break;
+          }
+        }
+      }
+      $$ = str_printf("scanf(%s, %s);\n", $3, $6);
+      }
     | SATR nl {
         $$ = xstrdup("printf(\"\\n\");\n");
       }
     | call_expr nl {
       $$ = str_printf("%s;\n", $1);
+      }
+    ;
+
+read_targets_reset
+    : /* empty */ {
+        reset_pending_read_targets();
+        $$ = xstrdup("");
+      }
+    ;
+
+read_targets
+    : read_target {
+        $$ = $1;
+      }
+    | read_targets COMMA read_target {
+        char* merged = str_printf("%s, %s", $1, $3);
+        free($1);
+        free($3);
+        $$ = merged;
+      }
+    ;
+
+read_target
+    : IDENT {
+        ValueType vt = symbol_type($1);
+        if (vt == TY_UNKNOWN) {
+            semantic_error("input target '%s' is undeclared", $1);
+        } else {
+            push_pending_read_target(vt, $1);
+        }
+        $$ = str_printf("&%s", $1);
       }
     ;
 

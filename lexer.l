@@ -117,6 +117,7 @@ static int process_indent(int indent) {
                             if (strcmp(yytext, "continue") == 0 || strcmp(yytext, "wasil") == 0) return CONTINUE;
                             if (strcmp(yytext, "return") == 0 || strcmp(yytext, "irji") == 0) return RETURN;
                             if (strcmp(yytext, "print") == 0 || strcmp(yytext, "qul") == 0) return PRINT;
+                            if (strcmp(yytext, "scanf") == 0 || strcmp(yytext, "iqra") == 0) return READ;
                             if (strcmp(yytext, "satr") == 0) return SATR;
                             if (strcmp(yytext, "def") == 0) return DEF;
 
